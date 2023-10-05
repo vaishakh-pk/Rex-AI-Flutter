@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:rex_ai/services/openai_services.dart';
 import 'package:rex_ai/widget/feature_box.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
-import '../pallete.dart';
+import '../misc/pallete.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,7 +14,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final speechToText = SpeechToText();
+  String lastWords = 'speech';
+  final OpenAIService openaiservice = OpenAIService();
   @override
+  void initState() {
+    
+    super.initState();
+    initSpeechToText();
+  }
+
+  Future <void> startListening() async {
+    await speechToText.listen(onResult: onSpeechResult);
+    print('now listening');
+    setState(() {});
+  }
+
+
+  Future <void> stopListening() async {
+    await speechToText.stop();
+    print('stopped listening');
+    setState(() {});
+  }
+
+  void onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      lastWords = result.recognizedWords;
+    });
+  }
+
+  Future<void> initSpeechToText() async
+  {
+    await speechToText.initialize();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    speechToText.stop();
+  }
+ @override
   Widget build(BuildContext context) {
 
     return Scaffold
@@ -105,7 +147,23 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Pallete.firstSuggestionBoxColor,
-        onPressed: (){},child: const Icon(Icons.mic),),
+        onPressed: ()
+        async {
+          if(await speechToText.hasPermission && speechToText.isNotListening)
+          {
+            await startListening();
+          }
+          else if(speechToText.isListening)
+          {
+            await stopListening();
+            print(lastWords);
+            openaiservice.isArtPromptAPI(lastWords);
+          }
+          else 
+          {
+            await initSpeechToText();
+          }
+        },child: const Icon(Icons.mic),),
     );
   }
 }

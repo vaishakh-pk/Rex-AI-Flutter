@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rex_ai/screens/home_page.dart';
 
-import 'pallete.dart';
+import 'misc/pallete.dart';
 
 void main() {
   runApp(const MyApp());

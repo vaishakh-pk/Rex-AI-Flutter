@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:rex_ai/pallete.dart';
+import 'package:rex_ai/misc/pallete.dart';
 
 class FeatureBox extends StatelessWidget {
   final Color color;
