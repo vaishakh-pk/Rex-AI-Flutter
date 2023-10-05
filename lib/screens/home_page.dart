@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rex_ai/widget/feature_box.dart';
 
-import 'pallete.dart';
+import '../pallete.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -75,8 +76,25 @@ class _HomePageState extends State<HomePage> {
               ),),
             ),
           ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.only(top: 10,left: 22),
+            alignment:Alignment.centerLeft ,
+            child: const Text('Here are some features :',style: TextStyle(
+              fontFamily: 'Cera Pro',
+              fontSize: 18,
+              color: Pallete.mainFontColor,
+              fontWeight: FontWeight.bold
+            ),),
+          ),
 
-          //
+          //Features list
+          const Column(
+            children: [
+               FeatureBox(color: Pallete.firstSuggestionBoxColor,headerText: 'ChatGPT',
+               descriptionText: 'An easier way to stay connected and informed with ChatGPT',)
+            ],
+          )
 
         ],
       ),

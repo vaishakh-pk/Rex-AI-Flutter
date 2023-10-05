@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rex_ai/home_page.dart';
+import 'package:rex_ai/screens/home_page.dart';
 
 import 'pallete.dart';
 
