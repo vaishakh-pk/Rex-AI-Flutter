@@ -5,6 +5,8 @@ import '../keys/apikeys.dart';
 
 class OpenAIService
 {
+  final List<Map<String , String>> messages = [];
+
   Future <String> isArtPromptAPI(String prompt) async
   {
     try
@@ -13,7 +15,7 @@ class OpenAIService
       print('checking in api');
 
       final res = await http.post(
-        Uri.parse('https://api.pawan.krd/v1/completions'),
+        Uri.parse('https://api.pawan.krd/v1/chat/completions'),
         headers: 
         {
           'Authorization': 'Bearer pk-***$openApiKey***',
@@ -22,13 +24,13 @@ class OpenAIService
 
         body: jsonEncode(
           {
-             "model": "gpt-3.5-turbo",
+             "model": "pai-001-light-beta",
              "max_tokens": 100,
             "messages": 
             [
               {
                 "role": "user", 
-                "content": "Does this message want to generate an AI art or similar? $prompt. answe in yes or no"
+                "content": "Does this message want to generate an AI art or similar? $prompt. answer in single word yes or no"
               }
             ]
           }
@@ -37,35 +39,133 @@ class OpenAIService
       );
 
 
-    //   final res = await http.post(
-    //     Uri.parse('https://api.openai.com/v1/chat/completions'),
-    //     headers: 
-    //     {
-    //       'Content-Type': 'application/json',
-    //       'Authorization': 'Bearer $openApiKey'
-    //     },
-    //     body: jsonEncode({
-    //       "model": "gpt-3.5-turbo",
-    //       "messages": [
-    //   {
-    //     "role": "user",
-    //     "content": "Does this message want to generate an AI art or similar? $prompt. answe in yes or no"
-    //   },
-    // ],
-    //     }),
-    //     );
         print(res.body);
         if(res.statusCode == 200)
         {
-          print('\n\nyay success');
+          String content = jsonDecode(res.body)['choices'][0]['message']['content'];
+          content = content.trim();
+          if(content.contains('yes') || content.contains('Yes'))
+          {
+            final res = await dallEAPI(prompt);
+            return res;
+          }
+          else
+          {
+            final res = await chatGPTAPI(prompt);
+            return res;
+          }
         }
-        return "AI";
+        return "An error occurred";
     }
     catch(e)
     {
       return e.toString();
     }
   }
-  // Future <String> chatGPTAPI(String prompt) async{}
-  // Future <String> dallEAPI(String prompt) async{}
+
+
+//ChatGPT Model
+
+  Future <String> chatGPTAPI(String prompt) async
+  {
+
+    messages.add({
+      'role':'user',
+      'content': prompt,
+    });
+
+    try{
+          final res = await http.post(
+        Uri.parse('https://api.pawan.krd/v1/chat/completions'),
+        headers: 
+        {
+          'Authorization': 'Bearer pk-***$openApiKey***',
+          'Content-Type': 'application/json',
+        },
+
+        body: jsonEncode(
+          {
+             "model": "pai-001-light-beta",
+             "max_tokens": 100,
+            "messages": messages
+          }
+        )
+
+      );
+
+        if(res.statusCode == 200)
+        {
+          String content = jsonDecode(res.body)['choices'][0]['message']['content'];
+          content = content.trim();
+          
+          messages.add(
+            {
+              'role' : 'assistan',
+              'content' : content
+            }
+          );
+          return content;
+        }
+        return "An error occurred";
+    }
+    catch(e)
+    {
+      return e.toString();
+    }
+  }
+
+  //Dall-E Model
+
+  Future <String> dallEAPI(String prompt) async
+  {
+    return 'DallE';
+  }
+
+  Future <void> testAPI() async
+  {
+    final res = await http.post(
+        Uri.parse('https://api.pawan.krd/v1/chat/completions'),
+        headers: 
+        {
+          'Authorization': 'Bearer pk-***$openApiKey***',
+          'Content-Type': 'application/json',
+        },
+
+        body: jsonEncode(
+          {
+             "model": "pai-001-light-beta",
+             "max_tokens": 100,
+            "messages": 
+            [
+              {
+                "role": "user", 
+                "content": "Hi, good morning"
+              }
+            ]
+          }
+        )
+    );
+
+
+    bool status = jsonDecode(res.body)['status'];
+
+    if(!status)
+    {
+      resetAPI();
+    }
+
+  }
+
+  Future<void> resetAPI() async
+  {
+    final res = await http.post(
+        Uri.parse('https://api.pawan.krd/resetip'),
+        headers: 
+        {
+          'Authorization': 'Bearer pk-***$openApiKey***'
+        }
+    );
+
+    print(res.body);
+  }
 }

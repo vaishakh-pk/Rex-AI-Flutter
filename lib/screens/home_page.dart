@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future <void> startListening() async {
-    await speechToText.listen(onResult: onSpeechResult);
+    await speechToText.listen(onResult: onSpeechResult, listenFor: const Duration(minutes: 5));
     print('now listening');
     setState(() {});
   }
@@ -151,13 +151,22 @@ class _HomePageState extends State<HomePage> {
         async {
           if(await speechToText.hasPermission && speechToText.isNotListening)
           {
+            lastWords = "";
             await startListening();
+            if(lastWords != "")
+            {
+            final speech = await openaiservice.isArtPromptAPI(lastWords);
+            print(speech);
+            }
           }
           else if(speechToText.isListening)
           {
-            await stopListening();
             print(lastWords);
-            openaiservice.isArtPromptAPI(lastWords);
+            if(lastWords == "") return;
+            final speech = await openaiservice.isArtPromptAPI(lastWords);
+            // openaiservice.resetAPI();
+            await stopListening();
+            print(speech);
           }
           else 
           {
