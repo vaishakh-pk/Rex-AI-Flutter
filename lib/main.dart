@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:rex_ai/screens/home_page.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import 'misc/pallete.dart';
 
 void main() {
+    WidgetsFlutterBinding.ensureInitialized();
+  SpeechToText().initialize();
   runApp(const MyApp());
 }
 

@@ -4,7 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:rex_ai/services/openai_services.dart';
 import 'package:rex_ai/widget/feature_box.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text_google_dialog/speech_to_text_google_dialog.dart';
 
 import '../misc/pallete.dart';
 
@@ -16,8 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final speechToText = SpeechToText();
-  String lastWords = 'speech';
+  String? lastWords;
   final OpenAIService openaiservice = OpenAIService();
   FlutterTts flutterTts = FlutterTts();
   String? generatedContent;
@@ -25,32 +24,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     
     super.initState();
-    initSpeechToText();
-  }
-
-  Future <void> startListening() async {
-    await speechToText.listen(onResult: onSpeechResult, listenFor: const Duration(minutes: 5));
-    print('now listening');
-    setState(() {});
   }
 
 
-  Future <void> stopListening() async {
-    await speechToText.stop();
-    print('stopped listening');
-    setState(() {});
-  }
-
-  void onSpeechResult(SpeechRecognitionResult result) {
-    setState(() {
-      lastWords = result.recognizedWords;
-    });
-  }
-
-  Future<void> initSpeechToText() async
-  {
-    await speechToText.initialize();
-  }
 
   Future<void> systemSpeak(String content) async
   {
@@ -60,7 +36,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     super.dispose();
-    speechToText.stop();
     flutterTts.stop();
   }
  @override
@@ -134,6 +109,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            SizedBox(height: 10,) ,
             SlideInLeft(
               child: Visibility(
                 visible: generatedContent==null,
@@ -184,36 +160,14 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: Pallete.firstSuggestionBoxColor,
           onPressed: ()
           async {
-            if(await speechToText.hasPermission && speechToText.isNotListening)
-            {
-              lastWords = "";
-              await startListening();
-              if(lastWords != "")
-              {
-              final speech = await openaiservice.chatGPTAPI(lastWords);
-              print(speech);
-              }
-              else return;
-            }
-            else if(speechToText.isListening)
-            {
-              print(lastWords);
-              if(lastWords == "") {
-                generatedContent = "Voice not recongnised! Try Again!";
-                setState(() {});
-                return;}
-              final speech = await openaiservice.chatGPTAPI(lastWords);
-              print(speech);
-              generatedContent=speech;
-              setState(() {});
-              await systemSpeak(speech);
-              await stopListening();
-              
-            }
-            else 
-            {
-              await initSpeechToText();
-            }
+            await SpeechToTextGoogleDialog.getInstance()
+                  .showGoogleDialog(onTextReceived: (data) async{
+                    lastWords = data.toString();
+                    generatedContent = await openaiservice.chatGPTAPI(lastWords!);
+                  setState(() {
+                  });
+                  systemSpeak(generatedContent!);
+                });
           },child: const Icon(Icons.mic),),
       ),
     );
