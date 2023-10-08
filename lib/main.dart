@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:rex_ai/screens/home_page.dart';
-import 'package:rex_ai/services/openai_services.dart';
 
 import 'misc/pallete.dart';
 
 void main() {
-  OpenAIService().testAPI();
   runApp(const MyApp());
 }
 

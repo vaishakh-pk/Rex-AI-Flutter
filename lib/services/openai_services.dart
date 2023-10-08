@@ -118,7 +118,51 @@ class OpenAIService
 
   Future <String> dallEAPI(String prompt) async
   {
-    return 'DallE';
+    
+    messages.add({
+      'role':'user',
+      'content': prompt,
+    });
+
+    try{
+          final res = await http.post(
+        Uri.parse('https://api.pawan.krd/v1/chat/completions'),
+        headers: 
+        {
+          'Authorization': 'Bearer pk-***$openApiKey***',
+          'Content-Type': 'application/json',
+        },
+
+        body: jsonEncode(
+          {
+             "model": "pai-001-light-beta",
+             "max_tokens": 100,
+            "messages": messages
+          }
+        )
+
+      );
+
+        if(res.statusCode == 200)
+        {
+          String content = jsonDecode(res.body)['choices'][0]['message']['content'];
+          content = content.trim();
+          
+          messages.add(
+            {
+              'role' : 'assistan',
+              'content' : content
+            }
+          );
+          return content;
+        }
+        return "An error occurred";
+    }
+    catch(e)
+    {
+      return e.toString();
+    }
+  
   }
 
   Future <void> testAPI() async
